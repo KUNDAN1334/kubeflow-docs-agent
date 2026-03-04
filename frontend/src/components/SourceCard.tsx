@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Source } from '../types';
+import { Source, SourceType } from '../types';
 import { sourceConfig } from '../styles/theme';
 
 interface SourceCardProps {
@@ -9,13 +9,15 @@ interface SourceCardProps {
 
 export const SourceCard: React.FC<SourceCardProps> = ({ source, index }) => {
   const [expanded, setExpanded] = useState(false);
-  const config = sourceConfig[source.source_type] || sourceConfig.docs;
+  const sourceType: SourceType = (['docs', 'issues', 'platform'].includes(source.source_type)
+    ? source.source_type
+    : 'docs') as SourceType;
+  const config = sourceConfig[sourceType];
   const relevancePct = Math.round(source.score * 100);
 
   return (
     <div
       style={{
-        borderLeft: `3px solid ${config.color}`,
         backgroundColor: '#FFFFFF',
         border: `1px solid #E0E0E0`,
         borderLeft: `3px solid ${config.color}`,

@@ -1,6 +1,6 @@
 """
 Singleton MilvusClient — fixes Issue #28 (connection pooling).
-Uses MilvusClient directly from pymilvus — works with milvus-lite file paths.
+Lazy import to avoid pymilvus ORM init at module load time.
 """
 
 import logging
@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 class _MilvusClientSingleton:
     _instance: Optional["_MilvusClientSingleton"] = None
     _client = None
+    _initialized = False
 
     def __new__(cls):
         if cls._instance is None:
@@ -21,17 +22,22 @@ class _MilvusClientSingleton:
         return cls._instance
 
     def initialize(self) -> None:
-        if self._client is not None:
+        if self._initialized and self._client is not None:
             return
-        # Import here to avoid module-level ORM init that reads Config.MILVUS_URI
-        from pymilvus import MilvusClient
-        logger.info(f"Initializing MilvusClient at {settings.MILVUS_URI}")
-        self._client = MilvusClient(uri=settings.MILVUS_URI)
-        self._ensure_collections()
-        logger.info("MilvusClient initialized and collections ready")
+        try:
+            from pymilvus import MilvusClient
+            logger.info(f"Initializing MilvusClient at {settings.MILVUS_URI}")
+            self._client = MilvusClient(uri=settings.MILVUS_URI)
+            self._initialized = True
+            self._ensure_collections()
+            logger.info("MilvusClient ready")
+        except Exception as e:
+            logger.error(f"MilvusClient init error: {e}")
+            self._client = None
+            self._initialized = False
+            raise
 
     def _ensure_collections(self) -> None:
-        """Create collections if they don't exist. NEVER drop. Fixes Issue #10."""
         for collection_name in [
             settings.DOCS_COLLECTION,
             settings.ISSUES_COLLECTION,
@@ -54,27 +60,21 @@ class _MilvusClientSingleton:
             metric_type="COSINE",
             auto_id=False,
         )
-        logger.info(f"Created collection: {collection_name}")
 
     @property
     def client(self):
-        if self._client is None:
-            raise RuntimeError("MilvusClient not initialized. Call initialize() first.")
         return self._client
 
     def upsert(self, collection_name: str, data: List[Dict[str, Any]]) -> int:
-        if not data:
+        if not data or self._client is None:
             return 0
         result = self._client.upsert(collection_name=collection_name, data=data)
         return result.get("upsert_count", len(data))
 
-    def search(
-        self,
-        collection_name: str,
-        query_vector: List[float],
-        top_k: int = 5,
-        output_fields: Optional[List[str]] = None,
-    ) -> List[Dict[str, Any]]:
+    def search(self, collection_name: str, query_vector: List[float],
+               top_k: int = 5, output_fields: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+        if self._client is None:
+            return []
         if output_fields is None:
             output_fields = ["title", "url", "content", "source_type", "chunk_index", "labels"]
         results = self._client.search(
@@ -83,18 +83,17 @@ class _MilvusClientSingleton:
             limit=top_k,
             output_fields=output_fields,
         )
-        if not results:
-            return []
-        return results[0]
+        return results[0] if results else []
 
     def get_collection_stats(self, collection_name: str) -> Dict[str, Any]:
-        try:
-            stats = self._client.get_collection_stats(collection_name)
-            return {"entity_count": int(stats.get("row_count", 0)), "status": "ok"}
-        except Exception as e:
-            return {"entity_count": 0, "status": f"error: {str(e)}"}
+        if self._client is None:
+            raise RuntimeError("MilvusClient not initialized")
+        stats = self._client.get_collection_stats(collection_name)
+        return {"entity_count": int(stats.get("row_count", 0)), "status": "ok"}
 
     def has_collection(self, collection_name: str) -> bool:
+        if self._client is None:
+            return False
         return self._client.has_collection(collection_name)
 
 

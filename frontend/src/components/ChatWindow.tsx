@@ -75,9 +75,9 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onSuggest }) => (
       justifyContent: 'center',
     }}>
       {[
-        { color: '#1976D2', bg: '#E3F2FD', icon: '📄', label: 'Official Docs' },
-        { color: '#FF6F00', bg: '#FFF3E0', icon: '🐛', label: 'GitHub Issues' },
-        { color: '#2E7D32', bg: '#E8F5E9', icon: '🏗️', label: 'Architecture & KEPs' },
+        { color: '#1976D2', bg: '#E3F2FD', label: 'Official Docs' },
+        { color: '#FF6F00', bg: '#FFF3E0',label: 'GitHub Issues' },
+        { color: '#2E7D32', bg: '#E8F5E9', label: 'Architecture & KEPs' },
       ].map(s => (
         <div key={s.label} style={{
           display: 'flex',

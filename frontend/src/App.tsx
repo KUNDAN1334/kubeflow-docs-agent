@@ -92,9 +92,9 @@ const App: React.FC = () => {
                 color: '#1976D2',
                 letterSpacing: '0.04em',
               }}>
-                {activeToolLabel === 'search_docs' && '🔍 Searching documentation...'}
-                {activeToolLabel === 'search_issues' && '🐛 Checking known issues...'}
-                {activeToolLabel === 'search_platform' && '🏗️ Looking up architecture...'}
+                {activeToolLabel === 'search_docs' && ' Searching documentation...'}
+                {activeToolLabel === 'search_issues' && ' Checking known issues...'}
+                {activeToolLabel === 'search_platform' && ' Looking up architecture...'}
                 {!['search_docs', 'search_issues', 'search_platform'].includes(activeToolLabel) && '⏳ Processing...'}
               </span>
               <style>{`@keyframes pulse { 0%,100%{opacity:0.4;transform:scale(0.8)} 50%{opacity:1;transform:scale(1)} }`}</style>

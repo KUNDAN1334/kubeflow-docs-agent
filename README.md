@@ -1,6 +1,6 @@
-# 🤖 Kubeflow Docs Agent
+#  Kubeflow Docs Agent
 
-## 🌐 Live Demo
+## Live Demo
 > **Frontend:** 
 > **Backend API:**
 ---

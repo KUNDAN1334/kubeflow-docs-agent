@@ -1,11 +1,10 @@
 """
 Singleton MilvusClient — fixes Issue #28 (connection pooling).
-One connection reused across all requests, never recreated per-request.
+Uses MilvusClient directly from pymilvus — works with milvus-lite file paths.
 """
 
 import logging
 from typing import List, Dict, Any, Optional
-from pymilvus import MilvusClient, DataType, CollectionSchema, FieldSchema
 
 from app.config import settings
 
@@ -13,14 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 class _MilvusClientSingleton:
-    """
-    Thread-safe singleton wrapper around MilvusClient.
-    Fixes Issue #28: single connection, not one per request.
-    Fixes Issue #91: URI from env var, not hardcoded.
-    """
-
     _instance: Optional["_MilvusClientSingleton"] = None
-    _client: Optional[MilvusClient] = None
+    _client = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -30,13 +23,15 @@ class _MilvusClientSingleton:
     def initialize(self) -> None:
         if self._client is not None:
             return
+        # Import here to avoid module-level ORM init that reads Config.MILVUS_URI
+        from pymilvus import MilvusClient
         logger.info(f"Initializing MilvusClient at {settings.MILVUS_URI}")
         self._client = MilvusClient(uri=settings.MILVUS_URI)
         self._ensure_collections()
         logger.info("MilvusClient initialized and collections ready")
 
     def _ensure_collections(self) -> None:
-        """Create collections if they don't exist. NEVER drop existing ones. Fixes Issue #10."""
+        """Create collections if they don't exist. NEVER drop. Fixes Issue #10."""
         for collection_name in [
             settings.DOCS_COLLECTION,
             settings.ISSUES_COLLECTION,
@@ -46,7 +41,7 @@ class _MilvusClientSingleton:
                 logger.info(f"Creating collection: {collection_name}")
                 self._create_collection(collection_name)
             else:
-                logger.info(f"Collection exists, skipping creation: {collection_name}")
+                logger.info(f"Collection exists: {collection_name}")
 
     def _create_collection(self, collection_name: str) -> None:
         self._client.create_collection(
@@ -62,15 +57,12 @@ class _MilvusClientSingleton:
         logger.info(f"Created collection: {collection_name}")
 
     @property
-    def client(self) -> MilvusClient:
+    def client(self):
         if self._client is None:
             raise RuntimeError("MilvusClient not initialized. Call initialize() first.")
         return self._client
 
     def upsert(self, collection_name: str, data: List[Dict[str, Any]]) -> int:
-        """
-        Upsert by primary key (chunk_id). Fixes Issue #10: no drop-on-rerun.
-        """
         if not data:
             return 0
         result = self._client.upsert(collection_name=collection_name, data=data)
@@ -85,7 +77,6 @@ class _MilvusClientSingleton:
     ) -> List[Dict[str, Any]]:
         if output_fields is None:
             output_fields = ["title", "url", "content", "source_type", "chunk_index", "labels"]
-
         results = self._client.search(
             collection_name=collection_name,
             data=[query_vector],
@@ -107,7 +98,6 @@ class _MilvusClientSingleton:
         return self._client.has_collection(collection_name)
 
 
-# Module-level singleton
 milvus_singleton = _MilvusClientSingleton()
 
 

@@ -7,5 +7,3 @@ pydantic==2.7.1
 python-dotenv==1.0.1
 requests==2.32.3
 numpy==1.26.4
-marshmallow==3.21.3
-environs==9.5.0

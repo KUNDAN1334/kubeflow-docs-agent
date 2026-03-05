@@ -110,7 +110,7 @@ def ingest_docs(github_token: str = "", mode: str = "incremental") -> Dict[str, 
 
         data = []
         for chunk, embedding in zip(chunks, embeddings):
-            chunk["embedding"] = embedding.tolist()
+            chunk["vector"] = embedding.tolist()
             data.append(chunk)
 
         upserted = milvus.upsert(settings.DOCS_COLLECTION, data)

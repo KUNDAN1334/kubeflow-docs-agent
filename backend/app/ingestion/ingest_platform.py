@@ -146,7 +146,7 @@ def ingest_platform(github_token: str = "", mode: str = "incremental") -> Dict[s
 
         data = []
         for chunk, embedding in zip(chunks, embeddings):
-            chunk["embedding"] = embedding.tolist()
+            chunk["vector"] = embedding.tolist()
             data.append(chunk)
 
         upserted = milvus.upsert(settings.PLATFORM_COLLECTION, data)

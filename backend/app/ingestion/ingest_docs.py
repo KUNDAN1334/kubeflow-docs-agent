@@ -39,6 +39,7 @@ def fetch_kubeflow_docs(github_token: str = "") -> List[Dict[str, Any]]:
         if f["path"].startswith("content/en/docs") and f["path"].endswith(".md")
     ][:100]
 
+    md_files = md_files[:50]  # Limit to 50 files for memory efficiency
     logger.info(f"Found {len(md_files)} documentation files to fetch")
 
     docs = []
@@ -106,7 +107,7 @@ def ingest_docs(github_token: str = "", mode: str = "incremental") -> Dict[str, 
 
         # Embed all chunks in batch
         texts = [c["content"] for c in chunks]
-        embeddings = embed_model.encode(texts, batch_size=32, show_progress_bar=False)
+        embeddings = embed_model.encode(texts, batch_size=4, show_progress_bar=False)
 
         data = []
         for chunk, embedding in zip(chunks, embeddings):

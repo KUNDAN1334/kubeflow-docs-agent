@@ -93,7 +93,7 @@ def fetch_kubeflow_issues(github_token: str = "") -> List[Dict[str, Any]]:
         "kubeflow/docs-agent",
         github_token=github_token,
         state="closed",
-        per_page=100,
+        per_page=30,
     )
     all_issues.extend(docs_agent_issues)
 
@@ -105,7 +105,7 @@ def fetch_kubeflow_issues(github_token: str = "") -> List[Dict[str, Any]]:
         github_token=github_token,
         state="closed",
         labels="bug",
-        per_page=50,
+        per_page=20,
     )
     all_issues.extend(kf_bug_issues)
 
@@ -116,7 +116,7 @@ def fetch_kubeflow_issues(github_token: str = "") -> List[Dict[str, Any]]:
         github_token=github_token,
         state="closed",
         labels="question",
-        per_page=50,
+        per_page=20,
     )
     all_issues.extend(kf_question_issues)
 
@@ -152,7 +152,7 @@ def ingest_issues(github_token: str = "", mode: str = "incremental") -> Dict[str
             continue
 
         texts = [c["content"] for c in chunks]
-        embeddings = embed_model.encode(texts, batch_size=32, show_progress_bar=False)
+        embeddings = embed_model.encode(texts, batch_size=4, show_progress_bar=False)
 
         data = []
         for chunk, embedding in zip(chunks, embeddings):

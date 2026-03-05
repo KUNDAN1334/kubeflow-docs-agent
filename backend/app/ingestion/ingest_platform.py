@@ -142,7 +142,7 @@ def ingest_platform(github_token: str = "", mode: str = "incremental") -> Dict[s
             continue
 
         texts = [c["content"] for c in chunks]
-        embeddings = embed_model.encode(texts, batch_size=32, show_progress_bar=False)
+        embeddings = embed_model.encode(texts, batch_size=4, show_progress_bar=False)
 
         data = []
         for chunk, embedding in zip(chunks, embeddings):

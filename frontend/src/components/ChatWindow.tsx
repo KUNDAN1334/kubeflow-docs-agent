@@ -74,11 +74,11 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onSuggest }) => (
       flexWrap: 'wrap',
       justifyContent: 'center',
     }}>
-      {[
+      {([
         { color: '#1976D2', bg: '#E3F2FD', label: 'Official Docs' },
-        { color: '#FF6F00', bg: '#FFF3E0',label: 'GitHub Issues' },
+        { color: '#FF6F00', bg: '#FFF3E0', label: 'GitHub Issues' },
         { color: '#2E7D32', bg: '#E8F5E9', label: 'Architecture & KEPs' },
-      ].map(s => (
+      ] as Array<{ color: string; bg: string; label: string }>).map(s => (
         <div key={s.label} style={{
           display: 'flex',
           alignItems: 'center',
@@ -93,7 +93,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onSuggest }) => (
           color: s.color,
           fontWeight: 500,
         }}>
-          <span>{s.icon}</span> {s.label}
+          {s.label}
         </div>
       ))}
     </div>

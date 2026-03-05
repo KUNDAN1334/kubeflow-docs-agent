@@ -1,9 +1,9 @@
 """
-Singleton MilvusClient using milvus-lite directly.
-Does NOT import from pymilvus ORM to avoid URI validation at import time.
+Singleton MilvusClient using milvus-lite.
 """
 
 import logging
+import os
 from typing import List, Dict, Any, Optional
 from app.config import settings
 
@@ -26,30 +26,17 @@ class _MilvusClientSingleton:
         try:
             uri = settings.MILVUS_URI
             logger.info(f"Initializing MilvusClient at {uri}")
-            # Import MilvusClient from milvus_lite directly — bypasses pymilvus ORM
-            from milvus_lite.simple_local import SimpleLocal
-            from pymilvus.milvus_client.milvus_client import MilvusClient
+            old = os.environ.pop("MILVUS_URI", None)
+            try:
+                from pymilvus import MilvusClient
+            finally:
+                if old:
+                    os.environ["MILVUS_URI"] = old
+
             self._client = MilvusClient(uri=uri)
             self._initialized = True
             self._ensure_collections()
             logger.info("MilvusClient ready")
-        except ImportError:
-            # Fallback: try standard pymilvus MilvusClient
-            try:
-                import os
-                old = os.environ.pop("MILVUS_URI", None)
-                from pymilvus import MilvusClient
-                if old:
-                    os.environ["MILVUS_URI"] = old
-                self._client = MilvusClient(uri=settings.MILVUS_URI)
-                self._initialized = True
-                self._ensure_collections()
-                logger.info("MilvusClient ready (fallback)")
-            except Exception as e2:
-                logger.error(f"MilvusClient fallback failed: {e2}")
-                self._client = None
-                self._initialized = False
-                raise
         except Exception as e:
             logger.error(f"MilvusClient init error: {e}")
             self._client = None
@@ -65,15 +52,12 @@ class _MilvusClientSingleton:
                 logger.info(f"Exists: {col}")
 
     def _create_collection(self, name: str) -> None:
+        # Use simple auto_id=True to avoid primary key type issues
         self._client.create_collection(
             collection_name=name,
             dimension=settings.EMBED_DIM,
-            primary_field_name="id",
-            id_type="varchar",
-            max_length=512,
-            vector_field_name="embedding",
             metric_type="COSINE",
-            auto_id=False,
+            auto_id=True,
         )
 
     @property
@@ -83,15 +67,16 @@ class _MilvusClientSingleton:
     def upsert(self, collection_name: str, data: List[Dict[str, Any]]) -> int:
         if not data or self._client is None:
             return 0
-        result = self._client.upsert(collection_name=collection_name, data=data)
-        return result.get("upsert_count", len(data))
+        # Use insert instead of upsert for auto_id collections
+        result = self._client.insert(collection_name=collection_name, data=data)
+        return result.get("insert_count", len(data))
 
     def search(self, collection_name: str, query_vector: List[float],
                top_k: int = 5, output_fields: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         if self._client is None:
             return []
         if output_fields is None:
-            output_fields = ["title", "url", "content", "source_type", "chunk_index", "labels"]
+            output_fields = ["title", "url", "content", "source_type", "chunk_index"]
         results = self._client.search(
             collection_name=collection_name,
             data=[query_vector],

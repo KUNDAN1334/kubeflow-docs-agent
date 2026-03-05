@@ -9,12 +9,12 @@ class Settings:
 
     # Milvus
     MILVUS_URI: str = os.getenv("MILVUS_URI", "./milvus_lite.db")
-    NAMESPACE: str = os.getenv("NAMESPACE", "docs-agent")
+    NAMESPACE: str = os.getenv("NAMESPACE", "docs_agent")
 
-    # Collections
-    DOCS_COLLECTION: str = f"{os.getenv('NAMESPACE', 'docs-agent')}_docs"
-    ISSUES_COLLECTION: str = f"{os.getenv('NAMESPACE', 'docs-agent')}_issues"
-    PLATFORM_COLLECTION: str = f"{os.getenv('NAMESPACE', 'docs-agent')}_platform"
+    # Collections — only letters, numbers, underscores allowed
+    DOCS_COLLECTION: str = "docs_agent_docs"
+    ISSUES_COLLECTION: str = "docs_agent_issues"
+    PLATFORM_COLLECTION: str = "docs_agent_platform"
 
     # CORS
     CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "*").split(",")

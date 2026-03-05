@@ -22,15 +22,8 @@ def _split_into_paragraphs(text: str) -> List[str]:
 
 
 def _split_into_sentences(text: str) -> List[str]:
-    """Split on sentence boundaries."""
     sentences = re.split(r"(?<=[.!?])\s+", text)
     return [s.strip() for s in sentences if s.strip()]
-
-
-def _make_chunk_id(source_url: str, chunk_index: int) -> str:
-    """Deterministic chunk ID for upsert safety. Fixes Issue #10."""
-    raw = f"{source_url}::{chunk_index}"
-    return hashlib.sha256(raw.encode()).hexdigest()[:64]
 
 
 def chunk_document(
@@ -42,41 +35,19 @@ def chunk_document(
     overlap: int = 100,
     metadata: Dict[str, Any] = None,
 ) -> List[Dict[str, Any]]:
-    """
-    Chunk a document into overlapping segments.
-    Returns list of chunk dicts ready for embedding + upsert.
-    """
     if metadata is None:
         metadata = {}
 
-    # Strip markdown frontmatter
     content = re.sub(r"^---\n.*?\n---\n", "", content, flags=re.DOTALL)
     content = content.strip()
-
     if not content:
         return []
 
-    # For short documents (issues), keep together if under chunk_size
     token_count = _estimate_tokens(content)
     if token_count <= chunk_size:
-        return [
-            {
-                "id": _make_chunk_id(source_url, 0),
-                "chunk_id": _make_chunk_id(source_url, 0),
-                "source_url": source_url,
-                "url": source_url,
-                "title": title,
-                "content": content[:4000],  # Milvus varchar limit safety
-                "source_type": source_type,
-                "chunk_index": 0,
-                "labels": metadata.get("labels", []),
-                "issue_number": metadata.get("issue_number", 0),
-            }
-        ]
+        return [_build_chunk(content[:4000], source_url, title, source_type, 0, metadata)]
 
-    # Split into paragraphs first
     paragraphs = _split_into_paragraphs(content)
-
     chunks = []
     current_tokens = 0
     current_parts: List[str] = []
@@ -144,16 +115,14 @@ def _build_chunk(
     chunk_index: int,
     metadata: Dict[str, Any],
 ) -> Dict[str, Any]:
-    chunk_id = _make_chunk_id(source_url, chunk_index)
+    # NO "id" or "chunk_id" field — collection uses auto_id=True
     return {
-        "id": chunk_id,
-        "chunk_id": chunk_id,
         "source_url": source_url,
         "url": source_url,
         "title": title,
-        "content": text[:4000],  # Safety truncation for Milvus varchar
+        "content": text[:4000],
         "source_type": source_type,
         "chunk_index": chunk_index,
-        "labels": metadata.get("labels", []),
+        "labels": str(metadata.get("labels", [])),
         "issue_number": metadata.get("issue_number", 0),
     }

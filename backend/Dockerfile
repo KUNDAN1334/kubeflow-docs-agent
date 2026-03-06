@@ -36,13 +36,8 @@ RUN pip install --no-cache-dir --force-reinstall marshmallow==3.21.3
 # Pre-download embedding model
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
 
-# Copy application code
 COPY app/ ./app/
-
-# Create directory for Milvus Lite database
 RUN mkdir -p /app/data
-
-# Copy pre-ingested Milvus DB
 COPY local_milvus.db /app/data/milvus_lite.db
 
 ENV MILVUS_URI=/app/data/milvus_lite.db
@@ -51,4 +46,4 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 
 EXPOSE 8000
-CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port $PORT"]

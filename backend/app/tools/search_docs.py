@@ -11,16 +11,7 @@ from app.db.milvus_client import get_milvus_client
 
 logger = logging.getLogger(__name__)
 
-# Module-level cached embed model
-_embed_model = None
-
-
-def _get_embed_model():
-    global _embed_model
-    if _embed_model is None:
-        from sentence_transformers import SentenceTransformer
-        _embed_model = SentenceTransformer(settings.EMBED_MODEL)
-    return _embed_model
+from app.db.embed_model import embed_query
 
 
 def search_docs(query: str, top_k: int = None) -> List[Dict[str, Any]]:
@@ -32,9 +23,7 @@ def search_docs(query: str, top_k: int = None) -> List[Dict[str, Any]]:
         top_k = settings.TOP_K
 
     milvus = get_milvus_client()
-    embed_model = _get_embed_model()
-
-    query_embedding = embed_model.encode([query])[0].tolist()
+    query_embedding = embed_query(query)
 
     results = milvus.search(
         collection_name=settings.DOCS_COLLECTION,

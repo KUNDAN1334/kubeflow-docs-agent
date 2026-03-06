@@ -72,6 +72,14 @@ async def lifespan(app: FastAPI):
     # Milvus — try but don't block startup
     get_or_init_milvus()
 
+    # Preload embedding model at startup (prevents OOM on first request)
+    try:
+        from app.db.embed_model import get_embed_model
+        get_embed_model()
+        logger.info("Embedding model preloaded")
+    except Exception as e:
+        logger.warning(f"Embedding model preload failed: {e}")
+
     logger.info("Kubeflow Docs Agent ready")
     yield
 

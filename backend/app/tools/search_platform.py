@@ -31,9 +31,7 @@ def search_platform(query: str, top_k: int = None) -> List[Dict[str, Any]]:
         top_k = settings.TOP_K
 
     milvus = get_milvus_client()
-    embed_model = _get_embed_model()
-
-    query_embedding = embed_model.encode([query])[0].tolist()
+    query_embedding = embed_query(query)
 
     results = milvus.search(
         collection_name=settings.PLATFORM_COLLECTION,

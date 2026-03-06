@@ -22,9 +22,11 @@ COPY app/ ./app/
 # Create directory for Milvus Lite database
 RUN mkdir -p /app/data
 
-# Set environment variables
+# Copy pre-ingested Milvus DB
+COPY local_milvus.db /app/data/milvus_lite.db
+
 ENV MILVUS_URI=/app/data/milvus_lite.db
-ENV NAMESPACE=docs-agent
+ENV NAMESPACE=docs_agent
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 

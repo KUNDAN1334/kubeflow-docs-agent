@@ -32,17 +32,14 @@ export const StatsBar: React.FC<StatsBarProps> = ({ toolUsed, latencyMs, sources
       marginTop: '10px',
       flexWrap: 'wrap',
     }}>
-      {/* Latency */}
       {latencyMs !== undefined && (
         <StatChip
           icon="⚡"
-          label={`${latencyMs < 1000 ? latencyMs + 'ms' : (latencyMs / 1000).toFixed(1) + 's'}`}
+          label={latencyMs < 1000 ? `${latencyMs}ms` : `${(latencyMs / 1000).toFixed(1)}s`}
           color="#616161"
           bg="#F5F5F5"
         />
       )}
-
-      {/* Tool used */}
       {toolUsed && (
         <StatChip
           icon={config?.icon || '🔍'}
@@ -51,8 +48,6 @@ export const StatsBar: React.FC<StatsBarProps> = ({ toolUsed, latencyMs, sources
           bg={config?.lightColor || '#E3F2FD'}
         />
       )}
-
-      {/* Sources */}
       <StatChip
         icon="📚"
         label={`${sourcesCount} source${sourcesCount !== 1 ? 's' : ''}`}
@@ -63,19 +58,16 @@ export const StatsBar: React.FC<StatsBarProps> = ({ toolUsed, latencyMs, sources
   );
 };
 
-const StatChip: React.FC<{
-  icon: string;
-  label: string;
-  color: string;
-  bg: string;
-}> = ({ icon, label, color, bg }) => (
+const StatChip: React.FC<{ icon: string; label: string; color: string; bg: string }> = ({
+  icon, label, color, bg,
+}) => (
   <div style={{
     display: 'inline-flex',
     alignItems: 'center',
     gap: '4px',
     backgroundColor: bg,
     color,
-    fontFamily: '"DM Mono", monospace',
+    fontFamily: '"IBM Plex Mono", monospace',
     fontSize: '10px',
     fontWeight: 500,
     letterSpacing: '0.03em',
@@ -83,7 +75,7 @@ const StatChip: React.FC<{
     borderRadius: '4px',
     userSelect: 'none',
   }}>
-    <span style={{ fontSize: '10px' }}>{icon}</span>
+    <span style={{ fontSize: '10px', lineHeight: 1 }}>{icon}</span>
     {label}
   </div>
 );

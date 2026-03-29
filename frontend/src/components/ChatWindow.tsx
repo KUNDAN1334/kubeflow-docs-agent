@@ -67,7 +67,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onSuggest }) => (
         color: '#616161',
         lineHeight: 1.65,
       }}>
-        Ask questions about Kubeflow — installation, pipelines, architecture, bugs, and more.
+        Ask questions about Kubeflow installation, pipelines, architecture, bugs, and more.
         Searches official docs, GitHub issues, and design proposals.
       </p>
     </div>
@@ -75,14 +75,13 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onSuggest }) => (
     {/* Source legend */}
     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
       {([
-        { color: '#1976D2', bg: '#E3F2FD', label: 'Official Docs', icon: '📄' },
-        { color: '#FB8C00', bg: '#FFF3E0', label: 'GitHub Issues', icon: '🐛' },
-        { color: '#2E7D32', bg: '#E8F5E9', label: 'Architecture & KEPs', icon: '🏗' },
-      ] as Array<{ color: string; bg: string; label: string; icon: string }>).map(s => (
+        { color: '#1976D2', bg: '#E3F2FD', label: 'Official Docs' },
+        { color: '#FB8C00', bg: '#FFF3E0', label: 'GitHub Issues' },
+        { color: '#2E7D32', bg: '#E8F5E9', label: 'Architecture & KEPs' },
+      ] as Array<{ color: string; bg: string; label: string }>).map((s) => (
         <div key={s.label} style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '5px',
           backgroundColor: s.bg,
           borderLeft: `3px solid ${s.color}`,
           padding: '5px 11px',
@@ -92,7 +91,6 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onSuggest }) => (
           color: s.color,
           fontWeight: 500,
         }}>
-          <span style={{ fontSize: '12px' }}>{s.icon}</span>
           {s.label}
         </div>
       ))}
@@ -134,13 +132,13 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onSuggest }) => (
               transition: 'all 0.15s',
               boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
             }}
-            onMouseEnter={e => {
+            onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = '#1976D2';
               e.currentTarget.style.backgroundColor = '#E3F2FD';
               e.currentTarget.style.color = '#1565C0';
               e.currentTarget.style.boxShadow = '0 2px 8px rgba(25,118,210,0.1)';
             }}
-            onMouseLeave={e => {
+            onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = '#E0E0E0';
               e.currentTarget.style.backgroundColor = '#FFFFFF';
               e.currentTarget.style.color = '#424242';
@@ -188,7 +186,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isLoading, onS
           width: '100%',
           margin: '0 auto',
         }}>
-          {messages.map(msg => (
+          {messages.map((msg) => (
             <MessageBubble key={msg.id} message={msg} />
           ))}
           <div ref={bottomRef} style={{ height: '16px' }} />
